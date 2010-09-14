@@ -161,7 +161,7 @@ class Chef
           ldap_conn = Chef::WebUIUser::LDAPConnection.new
           auth_user = ldap_conn.bind_as(@name,given_password)
         rescue
-          raise ArgumentError, "#{ldap_conn.get_operation_result.message} #{ldap_conn.get_operation_result.code}"
+          raise ArgumentError, "Error in LDAP initial bind"
         end
         auth_user && auth_user.is_user?
       end 
