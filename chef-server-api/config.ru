@@ -4,6 +4,9 @@ require 'chef'
 
 Chef::Config.from_file(File.join("/etc", "chef", "server.rb"))
 
+#Select the authentication module
+Chef::WebUIUser.select_authentication_module
+
 Merb::Config.setup(:merb_root   => File.expand_path(File.dirname(__FILE__)), 
                    :environment => 'production',
                    :fork_for_class_load => false,

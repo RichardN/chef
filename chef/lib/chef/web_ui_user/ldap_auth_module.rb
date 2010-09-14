@@ -154,13 +154,16 @@ class Chef
 
       # Verify the password for this object
       def cdb_verify_password(given_password)
+        unless given_password && given_password != ""
+          raise ArgumentError, "Password must be supplied"
+        end
         begin
           ldap_conn = Chef::WebUIUser::LDAPConnection.new
           auth_user = ldap_conn.bind_as(@name,given_password)
         rescue
           raise ArgumentError, "#{ldap_conn.get_operation_result.message} #{ldap_conn.get_operation_result.code}"
         end
-        auth_user.is_user?
+        auth_user && auth_user.is_user?
       end 
 
       # Save updates to the user providing that they do not clash with LDAP settings       
@@ -191,6 +194,7 @@ class Chef
       def auth_module_name
         'LDAPAuthModuleClassMethods'
       end
+      
 
       # Load an WebUIUser by name from LDAP.  If the user is not in LDAP and is in couchDB, get it from there.
       # We have to do this so that old (deleted from LDAP) users can be deleted from couchdb.

@@ -158,7 +158,7 @@ class Chef
     def self.admin_exist
       self.list.any?{ |u,url| self.load(u).admin? }
     end
-    
+   
     def escaped_name
       URI.escape(name, URI::REGEXP::PATTERN::RESERVED)
     end

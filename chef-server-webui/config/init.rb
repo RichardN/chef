@@ -51,12 +51,15 @@ Chef::Config[:node_name] = Chef::Config[:web_ui_client_name]
 Chef::Config[:client_key] = Chef::Config[:web_ui_key]
 
 # Create the default admin user "admin" if no admin user exists  
-if Chef::WebUIUser.auth_module_name == 'CDBAuthModuleClassMethods'
-  unless Chef::WebUIUser.admin_exist
+unless Chef::WebUIUser.admin_exist
+  # Don't throw an error if we can't create the user as it causes the
+  # web client not to run with LDAP for the first time
+  begin
     user = Chef::WebUIUser.new
     user.name = Chef::Config[:web_ui_admin_user_name]
     user.new_password = user.confirm_new_password = Chef::Config[:web_ui_admin_default_password]
     user.admin = true
     user.save
+  rescue
   end
 end

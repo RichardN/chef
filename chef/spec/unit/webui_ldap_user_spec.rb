@@ -202,7 +202,7 @@ describe Chef::WebUIUser, "with LDAP authentication module" do
 
   describe "when setting or verifying a password via the new_password values" do
 
-    before do
+    before(:each) do
       @webui_user.name = "ldap_test_user"
       @ldap_conn = mock("Net::LDAP")
       @ldap_user = mock("Net::LDAP::Entry")
@@ -296,6 +296,49 @@ describe Chef::WebUIUser, "with LDAP authentication module" do
       @webui_user.destroy
     end
     
+  end
+  
+  describe "when verifying a password of a user" do
+  
+    before(:each) do
+      @webui_user.name = "ldap_test_user"
+      @cldap_conn = mock("Chef::WebUIUser::LDAPConnection")
+      @mock_ldap_user = mock("Net::LDAP::User")      
+      Chef::WebUIUser::LDAPConnection.stub(:new).and_return(@cldap_conn)      
+    end
+  
+    it "raises an error when no password is supplied" do
+      lambda { @webui_user.cdb_verify_password(nil) }.
+        should raise_error ArgumentError, "Password must be supplied"
+    end
+
+    it "raises an error when blank is supplied" do
+      lambda { @webui_user.cdb_verify_password("") }.
+        should raise_error ArgumentError, "Password must be supplied"
+    end
+    
+    it "passes the supplied credentials to bind_as" do
+      @cldap_conn.should_receive(:bind_as).with("ldap_test_user", "blubber33").and_return(false)
+      @webui_user.cdb_verify_password("blubber33")
+    end
+    
+    it "checks to see that the bound user is a valid_user" do
+      @cldap_conn.stub(:bind_as).with("ldap_test_user", "blubber33").and_return(@mock_ldap_user)
+      @mock_ldap_user.should_receive(:is_user?).and_return(true)
+      @webui_user.cdb_verify_password("blubber33")
+    end
+    
+    it "should be false when the bind_as fails" do
+      @cldap_conn.stub(:bind_as).with("ldap_test_user", "blubber33").and_return(false)
+      @webui_user.cdb_verify_password("blubber33").should be_false
+    end
+    
+    it "should be true when the bind_as returns a user" do
+      @cldap_conn.stub(:bind_as).with("ldap_test_user", "blubber33").and_return(@mock_ldap_user)
+      @mock_ldap_user.stub(:is_user?).and_return(true)      
+      @webui_user.cdb_verify_password("blubber33").should be_true
+    end    
+  
   end
  
   describe "when loading a user that isn't in the couch DB but is in the LDAP data stores" do
